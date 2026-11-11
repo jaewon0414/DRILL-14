@@ -20,9 +20,9 @@ HALF_LENGTH_PIXEL = BIRD_LENGTH_M * PIXEL_PER_METER / 2  # 화면 끝에서 몸�
 # 비행 속도
 FLY_SPEED_KMPH = 27.5
 
-# 날갯짓 속도 (임시): 1초에 3번
-FRAMES_PER_ACTION = 14
-FLAPS_PER_SECOND = 3.0
+# 날갯짓 속도: 소년의 보폭처럼, 날갯짓 한 번에 앞으로 나아가는 거리를 정해 비행 속도와 묶는다
+FLAP_DISTANCE_M = 2.5  # 날갯짓 1번에 나아가는 거리
+FRAMES_PER_ACTION = 14  # 날갯짓 1번 = 그림 14장
 
 # tools/measure_bird_frames.py 로 잰 14장의 실제 영역과 눈 위치 (pico2d 좌표, 아래쪽 원점)
 # 그림을 5x3 칸으로 똑같이 나누면 날개 끝이 잘리거나 옆 그림이 묻어 나오고, 눈 높이가 최대 9픽셀 튄다.
@@ -55,7 +55,10 @@ class Bird:
         self.dir = dir  # 1: 오른쪽, -1: 왼쪽
         self.speed = kmph_to_pps(speed_kmph)
         self.frame = 0.0
-        self.frames_per_second = FLAPS_PER_SECOND * FRAMES_PER_ACTION
+        # 1초에 하는 날갯짓 횟수 = 초속 미터 / 날갯짓 1번의 거리, 1초에 넘길 그림 수 = 그 횟수 x 14
+        speed_mps = speed_kmph * 1000.0 / 60.0 / 60.0
+        flaps_per_second = speed_mps / FLAP_DISTANCE_M
+        self.frames_per_second = flaps_per_second * FRAMES_PER_ACTION
 
     def update(self):
         self.frame = (self.frame + self.frames_per_second * game_framework.frame_time) % FRAMES_PER_ACTION
