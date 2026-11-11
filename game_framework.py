@@ -31,17 +31,26 @@ def quit():
     running = False
 
 
+frame_time = 0.0  # 직전 프레임을 만드는 데 걸린 시간(초)
+frame_rate = 0.0  # 1초에 그리는 프레임 수
+
+
 def run(start_mode):
-    global running, stack
+    global running, stack, frame_time, frame_rate
     running = True
     stack = [start_mode]
     try:
         start_mode.init()
+
+        frame_time = 0.0
+        current_time = time.time()
         while running:
             stack[-1].handle_events()
             stack[-1].update()
             stack[-1].render()
-            time.sleep(0.02)
+            frame_time = time.time() - current_time
+            frame_rate = 1.0 / frame_time if frame_time > 0 else 0.0
+            current_time += frame_time
     finally:
         while stack:
             stack.pop().finish()
