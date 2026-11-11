@@ -1,13 +1,24 @@
-from pico2d import load_image
+from pico2d import get_canvas_width, load_image
 
 import game_framework
 
 PIXEL_PER_METER = (10.0 / 0.3)  # 10 pixel 30 cm
 
+
+def kmph_to_pps(kmph):
+    mpm = kmph * 1000.0 / 60.0  # 분속 미터
+    mps = mpm / 60.0  # 초속 미터
+    return mps * PIXEL_PER_METER  # 초당 픽셀
+
+
 # 새의 크기: 날개를 접은 그림의 꼬리 끝~부리 끝(146픽셀)을 몸길이 1.5m로 보고 모든 그림을 같은 비율로 줄인다
 BIRD_LENGTH_M = 1.5
 BIRD_LENGTH_IN_IMAGE = 146
 SCALE = BIRD_LENGTH_M * PIXEL_PER_METER / BIRD_LENGTH_IN_IMAGE
+HALF_LENGTH_PIXEL = BIRD_LENGTH_M * PIXEL_PER_METER / 2  # 화면 끝에서 몸을 돌리는 거리
+
+# 비행 속도
+FLY_SPEED_KMPH = 27.5
 
 # 날갯짓 속도 (임시): 1초에 3번
 FRAMES_PER_ACTION = 14
@@ -37,21 +48,37 @@ FRAMES = (
 class Bird:
     image = None
 
-    def __init__(self, x=800, y=400):
+    def __init__(self, x=800, y=400, dir=1, speed_kmph=FLY_SPEED_KMPH):
         if Bird.image is None:
             Bird.image = load_image('bird_animation.png')
         self.x, self.y = x, y  # 새의 위치 = 눈의 위치
+        self.dir = dir  # 1: 오른쪽, -1: 왼쪽
+        self.speed = kmph_to_pps(speed_kmph)
         self.frame = 0.0
         self.frames_per_second = FLAPS_PER_SECOND * FRAMES_PER_ACTION
 
     def update(self):
         self.frame = (self.frame + self.frames_per_second * game_framework.frame_time) % FRAMES_PER_ACTION
+        self.x += self.dir * self.speed * game_framework.frame_time
+
+        # 화면 끝에 닿으면 그 자리에 멈추고 방향을 바꾼다
+        if self.x > get_canvas_width() - HALF_LENGTH_PIXEL:
+            self.x = get_canvas_width() - HALF_LENGTH_PIXEL
+            self.dir = -1
+        elif self.x < HALF_LENGTH_PIXEL:
+            self.x = HALF_LENGTH_PIXEL
+            self.dir = 1
 
     def draw(self):
         left, bottom, width, height, eye_x, eye_y = FRAMES[int(self.frame)]
         # pico2d 는 지정한 자리를 그림의 가운데로 삼으므로, 잘라 낸 영역의 가운데가 눈에서 떨어진 만큼 옮겨 그린다
         offset_x = (left + width / 2 - eye_x) * SCALE
         offset_y = (bottom + height / 2 - eye_y) * SCALE
-        Bird.image.clip_draw(left, bottom, width, height,
-                             self.x + offset_x, self.y + offset_y,
-                             width * SCALE, height * SCALE)
+        if self.dir == 1:  # 그림 속 새는 오른쪽을 본다
+            Bird.image.clip_draw(left, bottom, width, height,
+                                 self.x + offset_x, self.y + offset_y,
+                                 width * SCALE, height * SCALE)
+        else:  # 왼쪽으로 날 때는 좌우를 뒤집고, 눈과 영역 가운데의 가로 거리도 반대가 된다
+            Bird.image.clip_composite_draw(left, bottom, width, height, 0, 'h',
+                                           self.x - offset_x, self.y + offset_y,
+                                           width * SCALE, height * SCALE)
