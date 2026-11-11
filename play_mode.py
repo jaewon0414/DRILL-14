@@ -1,6 +1,7 @@
 from pico2d import *
 import game_world
 import game_framework
+from bird import Bird
 from boy import Boy
 from grass import Grass
 
@@ -29,6 +30,8 @@ def init():
 
     grass = Grass()
     game_world.add_oject(grass, 0)
+
+    game_world.add_oject(Bird())
 
 
 def pause():
