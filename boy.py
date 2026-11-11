@@ -10,8 +10,12 @@ from ball import Ball
 
 import game_framework
 
-
-
+# Boy Run Speed
+PIXEL_PER_METER = (10.0 / 0.3)  # 10 pixel 30 cm
+RUN_SPEED_KMPH = 7.0  # Km / Hour 가벼운 달리기 조깅 속도
+RUN_SPEED_MPM = (RUN_SPEED_KMPH * 1000.0 / 60.0)
+RUN_SPEED_MPS = (RUN_SPEED_MPM / 60.0)
+RUN_SPEED_PPS = (RUN_SPEED_MPS * PIXEL_PER_METER)
 
 
 class Idle:
@@ -64,7 +68,7 @@ class Run:
 
     def do(self, boy):
         boy.frame = (boy.frame + 1) % 8
-        boy.x += boy.dir * 5
+        boy.x += boy.dir * RUN_SPEED_PPS * game_framework.frame_time
         boy.x = max(25, min(get_canvas_width() - 25, boy.x))
 
     def draw(self, boy):
