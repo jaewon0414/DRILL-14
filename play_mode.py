@@ -1,9 +1,13 @@
+import random
+
 from pico2d import *
 import game_world
 import game_framework
-from bird import Bird
+from bird import Bird, FRAMES_PER_ACTION
 from boy import Boy
 from grass import Grass
+
+BIRD_COUNT = 10
 
 boy = None
 
@@ -31,7 +35,14 @@ def init():
     grass = Grass()
     game_world.add_oject(grass, 0)
 
-    game_world.add_oject(Bird())
+    # 새 10마리: 위치, 높이, 방향, 속도, 날갯짓 박자를 새마다 무작위로
+    for _ in range(BIRD_COUNT):
+        bird = Bird(x=random.uniform(100, get_canvas_width() - 100),
+                    y=random.uniform(250, 560),
+                    dir=random.choice((-1, 1)),
+                    speed_kmph=random.uniform(20.0, 35.0),
+                    frame=random.uniform(0, FRAMES_PER_ACTION))
+        game_world.add_oject(bird)
 
 
 def pause():

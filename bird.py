@@ -48,13 +48,13 @@ FRAMES = (
 class Bird:
     image = None
 
-    def __init__(self, x=800, y=400, dir=1, speed_kmph=FLY_SPEED_KMPH):
+    def __init__(self, x=800, y=400, dir=1, speed_kmph=FLY_SPEED_KMPH, frame=0.0):
         if Bird.image is None:
             Bird.image = load_image('bird_animation.png')
         self.x, self.y = x, y  # 새의 위치 = 눈의 위치
         self.dir = dir  # 1: 오른쪽, -1: 왼쪽
         self.speed = kmph_to_pps(speed_kmph)
-        self.frame = 0.0
+        self.frame = frame
         # 1초에 하는 날갯짓 횟수 = 초속 미터 / 날갯짓 1번의 거리, 1초에 넘길 그림 수 = 그 횟수 x 14
         speed_mps = speed_kmph * 1000.0 / 60.0 / 60.0
         flaps_per_second = speed_mps / FLAP_DISTANCE_M
